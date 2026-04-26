@@ -48,6 +48,56 @@
  *   mgr.getAll(); // => [{ name: "Diwali", ... }, { name: "Republic Day", ... }]
  *   mgr.getUpcoming("2025-01-01", 1); // => [{ name: "Republic Day", ... }]
  */
+
 export function createFestivalManager() {
-  // Your code here
+  // --- PRIVATE STATE ---
+  // These are isolated.mgr.festivals will be undefined!
+  let festivals = [];
+  const validTypes = ["religious", "national", "cultural"];
+
+  // --- PUBLIC INTERFACE ---
+  return {
+    addFestival(name, date, type) {
+      // 1. Validation Logic (Gray Guard)
+      if (!name || typeof name !== "string" || name.trim() === "") return -1;
+      if (!date || typeof date !== "string") return -1;
+      if (!validTypes.includes(type)) return -1;
+
+      // 2. Duplicate Check
+      const exists = festivals.some(f => f.name === name);
+      if (exists) return -1;
+
+      festivals.push({ name, date, type });
+      return festivals.length;
+    },
+
+    removeFestival(name) {
+      const initialLength = festivals.length;
+      festivals = festivals.filter(f => f.name !== name);
+      return festivals.length < initialLength;
+    },
+
+    getAll() {
+      // Logic: Return a DEEP COPY so the private array remains safe
+      return festivals.map(f => ({ ...f }));
+    },
+
+    getByType(type) {
+      return festivals
+        .filter(f => f.type === type)
+        .map(f => ({ ...f }));
+    },
+
+    getUpcoming(currentDate, n = 3) {
+      return festivals
+        .filter(f => f.date >= currentDate)
+        .sort((a, b) => a.date.localeCompare(b.date))
+        .slice(0, n)
+        .map(f => ({ ...f }));
+    },
+
+    getCount() {
+      return festivals.length;
+    }
+  };
 }

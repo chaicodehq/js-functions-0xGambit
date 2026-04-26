@@ -40,13 +40,52 @@
  *   // => { totalCustomers: 3, totalRevenue: 7200, mealBreakdown: { veg: 2, nonveg: 1 } }
  */
 export function createTiffinPlan({ name, mealType = "veg", days = 30 } = {}) {
-  // Your code here
+  
+  if(!name || name === ""){
+    return null
+  }
+
+  let dailyRate
+  if(mealType === "veg") dailyRate = 80
+  else if(mealType === "nonveg") dailyRate = 120
+  else if(mealType === "jain") dailyRate = 90
+  else return null
+
+  const totalCost = dailyRate*days
+
+  return { name, mealType, days, dailyRate, totalCost }
 }
 
 export function combinePlans(...plans) {
-  // Your code here
+  if(plans.length === 0) return null
+  let totalCustomers = plans.length
+  let totalRevenue = plans.reduce((acc, {totalCost})=>(acc+totalCost),0)
+  const mealBreakdown = { veg : 0, nonveg : 0, jain: 0 }
+
+  plans.forEach(({mealType})=>{
+    if(mealBreakdown.hasOwnProperty(mealType)){
+      mealBreakdown[mealType]++
+    }
+  })
+
+  return {
+    totalCustomers,
+    totalRevenue,
+    mealBreakdown
+  }
 }
 
 export function applyAddons(plan, ...addons) {
-  // Your code here
+  if(!plan) return null
+  
+  let newDailyRate = addons.reduce((acc,addon)=>(acc+addon.price),plan.dailyRate)
+  let totalCost = newDailyRate * plan.days 
+
+  return{
+    ...plan, // old keys and values stay
+    dailyRate: newDailyRate,
+    totalCost: totalCost,
+    addonNames: addons.map(a => a.name)
+    // overwritting old values
+  }
 }

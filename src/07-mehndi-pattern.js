@@ -53,21 +53,75 @@
  *   generatePattern(3)        // => ["*", "**", "***", "**", "*"]
  */
 export function repeatChar(char, n) {
-  // Your code here
+  if(typeof char !== 'string' || char === '') return ''
+
+  if(n <= 0) return ''
+  return char + repeatChar(char, n-1)
 }
 
 export function sumNestedArray(arr) {
-  // Your code here
+  
+  if(!Array.isArray(arr) || arr.length === 0) return 0
+
+  if(typeof arr[arr.length - 1] === 'number') return arr.pop() + sumNestedArray(arr)
+
+  else if(typeof arr[arr.length - 1] !== 'number' && !Array.isArray(arr[arr.length-1])){
+    arr.pop()
+    return sumNestedArray(arr)
+  }
+  
+  else {
+    const lastEleSum = sumNestedArray(arr[arr.length - 1]) 
+    arr.pop()
+    return lastEleSum + sumNestedArray(arr)
+  }
 }
 
 export function flattenArray(arr) {
-  // Your code here
-}
+  // Base case: If not an array or empty
+  if (!Array.isArray(arr) || arr.length === 0) return [];
+
+  const [first, ...rest] = arr;
+
+  // Recursive case: If first is an array, flatten it; else wrap in array
+  const flatFirst = Array.isArray(first) ? flattenArray(first) : [first];
+
+  // Combine with the flattened rest
+  return [...flatFirst, ...flattenArray(rest)];
+} 
 
 export function isPalindrome(str) {
-  // Your code here
+  if (typeof str !== 'string') return false;
+  
+  // Clean the string (case-insensitive)
+  const cleanStr = str.toLowerCase();
+
+  // Base case: 0 or 1 characters left means it's a palindrome
+  if (cleanStr.length <= 1) return true;
+
+  // Compare first and last
+  if (cleanStr[0] !== cleanStr[cleanStr.length - 1]) return false;
+
+  // Recurse on the middle section
+  return isPalindrome(cleanStr.slice(1, -1));
 }
 
 export function generatePattern(n) {
-  // Your code here
+  if (!Number.isInteger(n) || n <= 0) return [];
+
+  // Helper to build the ascending and descending parts
+  function build(current) {
+    // Base Case: We hit the center of the pattern
+    if (current === n) {
+      return [repeatChar("*", n)];
+    }
+
+    const row = repeatChar("*", current);
+    
+    // Recursive Case: 
+    // [Row] + [Everything in the middle] + [Row again for symmetry]
+    return [row, ...build(current + 1), row];
+  }
+
+  return build(1);
 }

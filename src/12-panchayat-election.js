@@ -63,18 +63,95 @@
  *   election.castVote("V1", "C1", r => "voted!", e => "error: " + e);
  *   // => "voted!"
  */
-export function createElection(candidates) {
-  // Your code here
+
+export function createElection(candidatesList) {
+  // --- PRIVATE STATE (The Vault) ---
+  const registeredVoters = new Set();
+  const alreadyVoted = new Set();
+  const voteTally = {}; // Map of candidateId -> count
+  
+  // Initialize tally for all candidates to 0
+  candidatesList.forEach(c => { voteTally[c.id] = 0; });
+
+  return {
+    registerVoter(voter) {
+      if (!voter || !voter.id || voter.age < 18) return false;
+      if (registeredVoters.has(voter.id)) return false;
+
+      registeredVoters.add(voter.id);
+      return true;
+    },
+
+    castVote(voterId, candidateId, onSuccess, onError) {
+      // 1. Validation (Gray Guard)
+      if (!registeredVoters.has(voterId)) return onError("Not registered");
+      if (alreadyVoted.has(voterId)) return onError("Already voted");
+      if (!voteTally.hasOwnProperty(candidateId)) return onError("Invalid candidate");
+
+      // 2. Record Vote
+      alreadyVoted.add(voterId);
+      voteTally[candidateId]++;
+
+      // 3. Callback execution
+      return onSuccess({ voterId, candidateId });
+    },
+
+    getResults(sortFn) {
+      // Map the private tally back to a "light pink" results array
+      const results = candidatesList.map(c => ({
+        ...c,
+        votes: voteTally[c.id]
+      }));
+
+      // If HOF provided, use it; else default to descending votes
+      if (typeof sortFn === 'function') {
+        return results.sort(sortFn);
+      }
+      return results.sort((a, b) => b.votes - a.votes);
+    },
+
+    getWinner() {
+      const results = this.getResults();
+      const totalVotes = Object.values(voteTally).reduce((a, b) => a + b, 0);
+      
+      return totalVotes === 0 ? null : results[0];
+    }
+  };
 }
 
 export function createVoteValidator(rules) {
-  // Your code here
+  // FACTORY: Returns a specialized function pre-loaded with 'rules'
+  return function(voter) {
+    if (!voter) return { valid: false, reason: "No voter data" };
+
+    // Check required fields using every()
+    const fieldsMissing = rules.requiredFields.some(field => !(field in voter));
+    if (fieldsMissing) return { valid: false, reason: "Missing fields" };
+
+    if (voter.age < rules.minAge) return { valid: false, reason: "Underage" };
+
+    return { valid: true, reason: "Approved" };
+  };
 }
 
 export function countVotesInRegions(regionTree) {
-  // Your code here
+  // RECURSION: The "Matryoshka" approach
+  if (!regionTree) return 0;
+
+  const currentVotes = regionTree.votes || 0;
+  const subRegionVotes = (regionTree.subRegions || []).reduce((acc, sub) => {
+    return acc + countVotesInRegions(sub);
+  }, 0);
+
+  return currentVotes + subRegionVotes;
 }
 
 export function tallyPure(currentTally, candidateId) {
-  // Your code here
+  // PURE FUNCTION: Zero mutation
+  const currentCount = currentTally[candidateId] || 0;
+  
+  return {
+    ...currentTally,
+    [candidateId]: currentCount + 1
+  };
 }

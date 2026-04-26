@@ -54,21 +54,50 @@
  *   // red and blue objects are UNCHANGED
  */
 export function mixColors(color1, color2) {
-  // Your code here
+  if (!color1 || !color2) return null;
+
+  return {
+    name: `${color1.name}-${color2.name}`,
+    r: Math.round((color1.r + color2.r) / 2),
+    g: Math.round((color1.g + color2.g) / 2),
+    b: Math.round((color1.b + color2.b) / 2)
+  };
 }
 
 export function adjustBrightness(color, factor) {
-  // Your code here
+  if (!color || typeof factor !== 'number') return null;
+
+  const clamp = (val) => Math.min(255, Math.max(0, Math.round(val * factor)));
+
+  return {
+    ...color, // Copy existing properties (like name)
+    r: clamp(color.r),
+    g: clamp(color.g),
+    b: clamp(color.b)
+  };
 }
 
 export function addToPalette(palette, color) {
-  // Your code here
+  if (!Array.isArray(palette)) return color ? [color] : [];
+  if (!color) return [...palette];
+
+  return [...palette, color];
 }
 
 export function removeFromPalette(palette, colorName) {
-  // Your code here
+  if (!Array.isArray(palette)) return [];
+
+  return palette.filter(color => color.name !== colorName);
 }
 
 export function mergePalettes(palette1, palette2) {
-  // Your code here
+  const p1 = Array.isArray(palette1) ? palette1 : [];
+  const p2 = Array.isArray(palette2) ? palette2 : [];
+
+  const combined = [...p1, ...p2];
+  
+  // Use filter to keep only the first occurrence of each name
+  return combined.filter((color, index, self) => 
+    index === self.findIndex((c) => c.name === color.name)
+  );
 }

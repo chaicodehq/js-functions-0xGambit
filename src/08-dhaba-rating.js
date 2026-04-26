@@ -45,17 +45,47 @@
  *   // => [{ rating: 5 }, { rating: 3 }]
  */
 export function createFilter(field, operator, value) {
-  // Your code here
+  const operations = {
+    ">": (a, b) => a > b,
+    "<": (a, b) => a < b,
+    ">=": (a, b) => a >= b,
+    "<=": (a, b) => a <= b,
+    "===": (a, b) => a === b
+  };
+
+  // If operator is invalid, return a function that always fails
+  if (!operations[operator]) return () => false;
+
+  return (obj) => operations[operator](obj[field], value);
 }
 
 export function createSorter(field, order = "asc") {
-  // Your code here
+  const isDesc = order.toLowerCase() === "desc";
+
+  return (a, b) => {
+    if (a[field] < b[field]) return isDesc ? 1 : -1;
+    if (a[field] > b[field]) return isDesc ? -1 : 1;
+    return 0;
+  };
 }
 
 export function createMapper(fields) {
-  // Your code here
+  return (obj) => {
+    const mappedObj = {};
+    fields.forEach(field => {
+      if (obj.hasOwnProperty(field)) {
+        mappedObj[field] = obj[field];
+      }
+    });
+    return mappedObj;
+  };
 }
 
 export function applyOperations(data, ...operations) {
-  // Your code here
+  if (!Array.isArray(data)) return [];
+
+  // Logic: Start with data, then pass the result of each function to the next
+  return operations.reduce((currentData, operation) => {
+    return operation(currentData);
+  }, data);
 }
